@@ -1,7 +1,6 @@
 #include <windows.h>
 #include <commctrl.h>
 
-// ¡¨µ„∆˜…Ë÷√Ω·ππÃÂ
 typedef struct {
     BOOL enabled;
     int cps;
@@ -10,7 +9,6 @@ typedef struct {
     BOOL mouse_down;
 } ClickerSettings;
 
-// »´æ÷±‰¡ø
 ClickerSettings leftClicker = {0, 10, 0, 0, 0};
 ClickerSettings rightClicker = {0, 10, 0, 0, 0};
 HWND g_hMainWnd = NULL;
@@ -19,7 +17,6 @@ HHOOK g_keyboardHook = NULL;
 HHOOK g_mouseHook = NULL;
 BOOL g_targetWindowActive = FALSE;
 
-// øÿº˛ID
 #define IDC_LEFT_ENABLE       101
 #define IDC_RIGHT_ENABLE      102
 #define IDC_LEFT_CPS_SLIDER   103
@@ -34,11 +31,9 @@ BOOL g_targetWindowActive = FALSE;
 
 static int g_settingHotkeyFor = 0;
 
-// ªÒ»°º¸√˚£®ºÚªØ∞Ê£©
 const char* GetKeyName(int vkCode) {
     static char keyName[20];
     
-    // ≥£”√º¸µƒºÚ–¥
     if (vkCode >= 'A' && vkCode <= 'Z') {
         keyName[0] = (char)vkCode;
         keyName[1] = 0;
@@ -50,7 +45,6 @@ const char* GetKeyName(int vkCode) {
         return keyName;
     }
     
-    // Ãÿ ‚º¸”≥…‰
     switch (vkCode) {
         case VK_F1: return "F1"; case VK_F2: return "F2"; case VK_F3: return "F3"; case VK_F4: return "F4";
         case VK_F5: return "F5"; case VK_F6: return "F6"; case VK_F7: return "F7"; case VK_F8: return "F8";
@@ -62,18 +56,15 @@ const char* GetKeyName(int vkCode) {
     }
 }
 
-// ≤È’“ƒø±Í¥∞ø⁄£®–¥À¿≤È’“LWJGL¥∞ø⁄£©
 void FindTargetWindow() {
     g_targetWindow = FindWindowA("LWJGL", NULL);
 }
 
-// ºÏ≤Èƒø±Í¥∞ø⁄ «∑Òº§ªÓ
 BOOL IsTargetWindowActive() {
     if (!g_targetWindow) return FALSE;
     return GetForegroundWindow() == g_targetWindow;
 }
 
-// ¥¶¿Ìµ„ª˜£®∫œ≤¢◊Û”“º¸¥¶¿Ì£©
 void HandleClick(ClickerSettings* clicker, UINT downMsg, UINT upMsg) {
     if (!g_targetWindowActive || !clicker->enabled || !clicker->mouse_down || !g_targetWindow) return;
     
@@ -89,7 +80,6 @@ void HandleClick(ClickerSettings* clicker, UINT downMsg, UINT upMsg) {
     }
 }
 
-// º¸≈Ãπ≥◊”π˝≥Ã
 LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam) {
     if (nCode >= 0) {
         KBDLLHOOKSTRUCT* pKeyboard = (KBDLLHOOKSTRUCT*)lParam;
@@ -97,7 +87,6 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam) {
         if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
             int vkCode = pKeyboard->vkCode;
             
-            // …Ë÷√»»º¸ƒ£ Ω
             if (g_settingHotkeyFor) {
                 if (g_settingHotkeyFor == 1) {
                     leftClicker.toggle_hotkey = vkCode;
@@ -111,7 +100,6 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam) {
                 return 1;
             }
             
-            // ◊Ûº¸«–ªª»»º¸
             if (vkCode == leftClicker.toggle_hotkey && leftClicker.toggle_hotkey) {
                 if (g_targetWindowActive) {
                     leftClicker.enabled = !leftClicker.enabled;
@@ -120,7 +108,6 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam) {
                 return 1;
             }
             
-            // ”“º¸«–ªª»»º¸
             if (vkCode == rightClicker.toggle_hotkey && rightClicker.toggle_hotkey) {
                 if (g_targetWindowActive) {
                     rightClicker.enabled = !rightClicker.enabled;
@@ -133,7 +120,6 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam) {
     return CallNextHookEx(g_keyboardHook, nCode, wParam, lParam);
 }
 
-//  Û±Íπ≥◊”π˝≥Ã
 LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam) {
     if (nCode >= 0 && g_targetWindowActive) {
         if (wParam == WM_LBUTTONDOWN) leftClicker.mouse_down = 1;
@@ -144,14 +130,13 @@ LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam) {
     return CallNextHookEx(g_mouseHook, nCode, wParam, lParam);
 }
 
-// ¥∞ø⁄π˝≥Ã
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
         case WM_CREATE: {
             g_hMainWnd = hwnd;
             FindTargetWindow();
             
-            // ≥¨ºÚΩÁ√Ê - √ø––“ª∏ˆπ¶ƒ‹
+            // Ë∂ÖÁÆÄÁïåÈù¢ - ÊØèË°å‰∏Ä‰∏™ÂäüËÉΩ
             CreateWindowA("BUTTON", "L: Enable", WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX, 
                           10, 10, 80, 25, hwnd, (HMENU)IDC_LEFT_ENABLE, 0, 0);
             HWND hLeftSlider = CreateWindowA(TRACKBAR_CLASS, "", WS_CHILD | WS_VISIBLE | TBS_HORZ, 
@@ -177,7 +162,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             CreateWindowA("STATIC", g_targetWindow ? "Ready (LWJGL)" : "No Target", 
                           WS_CHILD | WS_VISIBLE, 10, 80, 330, 20, hwnd, (HMENU)IDC_STATUS_TEXT, 0, 0);
             
-            // ∞≤◊∞π≥◊”
             g_mouseHook = SetWindowsHookEx(WH_MOUSE_LL, MouseHookProc, 0, 0);
             g_keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyboardHookProc, 0, 0);
             
@@ -257,15 +241,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     return 0;
 }
 
-// ≥Ã–Ú»Îø⁄µ„
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
-    // ≥ı ºªØÕ®”√øÿº˛£®±ÿ–Ë£©
     INITCOMMONCONTROLSEX icex;
     icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
     icex.dwICC = ICC_WIN95_CLASSES;
     InitCommonControlsEx(&icex);
-    
-    // ◊¢≤·¥∞ø⁄¿‡
     WNDCLASSEXA wc;
     wc.cbSize = sizeof(WNDCLASSEXA);
     wc.style = CS_HREDRAW | CS_VREDRAW;
@@ -273,16 +253,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     wc.cbClsExtra = 0;
     wc.cbWndExtra = 0;
     wc.hInstance = hInstance;
-    wc.hIcon = NULL;  // “∆≥˝Õº±Íºı–°ÃÂª˝
+    wc.hIcon = NULL;
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
     wc.lpszMenuName = NULL;
     wc.lpszClassName = "AC";
-    wc.hIconSm = NULL;  // “∆≥˝–°Õº±Í
+    wc.hIconSm = NULL;
     
     RegisterClassExA(&wc);
-    
-    // ¥¥Ω®¥∞ø⁄
     HWND hwnd = CreateWindowExA(0, "AC", "AutoClicker", 
                                 WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
                                 100, 100, 360, 125, 0, 0, hInstance, 0);
